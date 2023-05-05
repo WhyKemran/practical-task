@@ -21,7 +21,7 @@
                     }
                 </a>
             {/capture}
-            {if $auth.user_id}
+            {if $auth.user_idd}
                 {if $user_info.firstname || $user_info.lastname}
                     <li class="ty-account-info__item  ty-account-info__name ty-dropdown-box__item">{$user_info.firstname} {$user_info.lastname}</li>
                 {else}
@@ -36,6 +36,8 @@
             {elseif $user_data.email}
                 <li class="ty-account-info__item ty-dropdown-box__item ty-account-info__name">{$user_data.email}</li>
             {/if}
+            <li class="ty-account-info__item ty-dropdown-box__item"><a class="ty-account-info__a underlined" href="{"departments.departments"|fn_url}" rel="nofollow">{__("departments")}</a></li>
+
             <li class="ty-account-info__item ty-dropdown-box__item"><a class="ty-account-info__a underlined" href="{"orders.search"|fn_url}" rel="nofollow">{__("orders")}</a></li>
             {if $settings.General.enable_compare_products == 'Y'}
                 {$compared_products_ids = $smarty.session.comparison_list}
