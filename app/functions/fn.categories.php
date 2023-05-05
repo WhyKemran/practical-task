@@ -2326,3 +2326,73 @@ function fn_get_departments($params = [], $items_per_page = 0, $lang_code = CART
     return array($departments, $params);
 }
 
+function fn_update_department($data, $department_id, $lang_code = DESCR_SL)
+{
+    
+    if (isset($data['timestamp'])) {
+        $data['timestamp'] = fn_parse_date($data['timestamp']);
+    }
+
+    if (!empty($department_id)) {
+        db_query("UPDATE ?:departments SET ?u WHERE department_id = ?i", $data, $department_id);
+        db_query("UPDATE ?:department_descriptions SET ?u WHERE department_id = ?i AND lang_code = ?s", $data, $department_id, $lang_code);
+
+    } else {
+        $department_id = $data['department_id'] = db_replace_into('departments', $data);
+
+        foreach (Languages::getAll() as $data['lang_code'] => $v) {
+            db_query("REPLACE INTO ?:department_descriptions ?e", $data);
+        }
+    }
+    
+    if (!empty($department_id)) {
+        fn_attach_image_pairs('department', 'department', $department_id, $lang_code);
+    }
+
+
+    $products_ids = explode(',', !empty($data['product_ids']) ? $data['product_ids'] : []);
+
+    fn_department_add_links($department_id, $products_ids);
+ 
+    //fn_department_delete_links($department_id);
+
+    
+    
+    return $department_id;
+}
+
+function fn_delete_department($department_id)
+{
+    if (!empty($department_id)) {
+        $res = db_query('DELETE FROM ?:departments WHERE department_id = ?i', $department_id);
+        db_query('DELETE FROM ?:department_descriptions WHERE department_id = ?i', $department_id);
+        fn_department_delete_links($department_id);
+    }
+    
+
+
+}
+
+function fn_department_delete_links($department_id) {
+    db_query("DELETE FROM ?:department_links WHERE department_id = ?i", $department_id);
+
+}
+function fn_department_add_links($department_id, $products_ids) {
+    //fn_print_die($products_ids);
+    if (!empty($products_ids)) {
+
+        //$product_ids = explode(",", $products_ids);
+        //fn_print_die($product_ids);
+        foreach ($products_ids as $product_id) {
+            //fn_print_die($department_id);
+            
+            db_query("REPLACE INTO ?:department_links ?e", [
+                'product_id' => $product_id,
+                'department_id' => $department_id,
+            ]);
+        }
+    }
+}
+function fn_department_get_links($department_id) {
+    return !empty($department_id) ? db_get_fields('SELECT product_id FROM ?:department_links WHERE department_id = ?i', $department_id) : [];
+}
